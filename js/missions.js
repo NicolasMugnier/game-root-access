@@ -1,7 +1,7 @@
 import { state, gainXP, gainCredits, spendCredits, saveState } from './game.js';
 import { MISSIONS, TOOLS, SKILLS } from './data.js';
 import { log } from './terminal.js';
-import { renderMission, renderMissionList, showTooltip, renderJournal, renderAll } from './ui.js';
+import { renderMission, renderMissionList, showTooltip, renderJournal, renderAll, computeBonuses } from './ui.js';
 
 // ── MISSION FLOW ──────────────────────────────────────────
 function startMission(id) {
@@ -11,6 +11,12 @@ function startMission(id) {
   window._sel = null;
   log(`[MISSION] Chargement : "${mission.title}"`, 'warn');
   log(`[MISSION] Type : ${mission.type.toUpperCase()} | Difficulté : ${'★'.repeat(mission.difficulty)}`, 'info');
+
+  const { applied } = computeBonuses(mission);
+  if (applied.length) {
+    applied.forEach(b => log(`[BONUS]   ${b}`, 'success'));
+  }
+
   renderMission(mission);
 }
 
@@ -28,30 +34,27 @@ function submitMission() {
       document.querySelectorAll('.flag-item.selected input')
     ).map(el => el.value);
 
-    if (selected.length === 0) {
+    if (!selected.length) {
       log('[WARN] Sélectionnez au moins un red flag', 'warn');
       return;
     }
 
-    const correct = mission.options.filter(o => o.correct).map(o => o.id);
+    const correct  = mission.options.filter(o => o.correct).map(o => o.id);
     const truePos  = selected.filter(id => correct.includes(id)).length;
     const falsePos = selected.filter(id => !correct.includes(id)).length;
     success = truePos === correct.length && falsePos === 0;
 
-  } else if (mission.type === 'hash' || mission.type === 'network' || mission.type === 'ctf') {
+  } else {
     if (!window._sel) {
       log('[WARN] Sélectionnez une option avant de valider', 'warn');
       return;
     }
-
     if (mission.type === 'hash') {
-      const opt = mission.options.find(o => o.id === window._sel);
-      success = opt ? opt.correct : false;
+      success = mission.options.find(o => o.id === window._sel)?.correct ?? false;
     } else if (mission.type === 'network') {
       success = window._sel === mission.correctNodeId;
     } else if (mission.type === 'ctf') {
-      const opt = mission.options.find(o => o.id === window._sel);
-      success = opt ? opt.correct : false;
+      success = mission.options.find(o => o.id === window._sel)?.correct ?? false;
     }
   }
 
@@ -60,9 +63,11 @@ function submitMission() {
 }
 
 function _resolve(mission, success) {
+  const { finalXP, finalCredits, applied } = computeBonuses(mission);
+
   if (success) {
-    gainXP(mission.xpReward);
-    gainCredits(mission.creditReward);
+    gainXP(finalXP);
+    gainCredits(finalCredits);
     state.completedMissions.push(mission.id);
     state.currentMission = null;
 
@@ -71,16 +76,16 @@ function _resolve(mission, success) {
       content: mission.tooltip.knowledge,
     });
 
-    log(`[SUCCESS] "${mission.title}" réussie ! +${mission.xpReward} XP +${mission.creditReward}₿`, 'success');
+    log(`[SUCCESS] "${mission.title}" réussie ! +${finalXP} XP +${finalCredits}₿`, 'success');
     saveState();
-    showTooltip(true, mission, mission.xpReward, mission.creditReward);
+    showTooltip(true, mission, finalXP, finalCredits, applied);
   } else {
     log(`[FAIL] Mission "${mission.title}" échouée. Relancez pour réessayer.`, 'error');
-    showTooltip(false, mission, 0, 0);
+    showTooltip(false, mission, 0, 0, []);
   }
 }
 
-// ── SHOP & SKILLS ─────────────────────────────────────────
+// ── SHOP & UPGRADES ───────────────────────────────────────
 function buyTool(toolId) {
   const tool = TOOLS.find(t => t.id === toolId);
   if (!tool || state.inventory.includes(toolId)) return;
@@ -89,7 +94,26 @@ function buyTool(toolId) {
     return;
   }
   state.inventory.push(toolId);
-  log(`[SHOP] ${tool.icon} ${tool.name} acquis ! ${tool.passive}`, 'success');
+  if (!state.toolLevels[toolId]) state.toolLevels[toolId] = 1;
+  log(`[SHOP] ${tool.icon} ${tool.name} acquis ! ${tool.hint}`, 'success');
+  saveState();
+}
+
+function upgradeTool(toolId) {
+  const tool = TOOLS.find(t => t.id === toolId);
+  if (!tool) return;
+  const currentLevel = state.toolLevels[toolId] || 1;
+  if (currentLevel >= tool.maxLevel) {
+    log(`[SHOP] ${tool.name} est déjà au niveau maximum`, 'warn');
+    return;
+  }
+  const cost = currentLevel * 100;
+  if (!spendCredits(cost)) {
+    log(`[SHOP] Crédits insuffisants pour améliorer ${tool.name} (${cost}₿)`, 'error');
+    return;
+  }
+  state.toolLevels[toolId] = currentLevel + 1;
+  log(`[SHOP] ${tool.icon} ${tool.name} → Nv.${state.toolLevels[toolId]} ! Bonus amélioré.`, 'success');
   saveState();
 }
 
@@ -113,28 +137,26 @@ function unlockSkill(skillId, cost) {
 
 // ── WINDOW HANDLERS ───────────────────────────────────────
 export function setupWindowHandlers() {
-  window._startMission = startMission;
-  window._backToList   = () => { state.currentMission = null; renderMissionList(); };
+  window._startMission  = startMission;
   window._submitMission = submitMission;
+  window._backToList    = () => { state.currentMission = null; renderMissionList(); };
 
-  window._selectSingle = (el, selector) => {
+  window._selectSingle  = (el, selector) => {
     document.querySelectorAll(selector).forEach(n => n.classList.remove('selected'));
     el.classList.add('selected');
   };
 
-  window._closeTooltip = (goToList) => {
+  window._closeTooltip  = (goToList) => {
     document.getElementById('tooltip-overlay').classList.add('hidden');
-    if (goToList) {
-      renderMissionList();
-      renderAll();
-    }
+    if (goToList) { renderMissionList(); renderAll(); }
   };
 
-  window._viewJournal  = () => renderJournal();
-  window._closeJournal = () => document.getElementById('journal-panel').classList.add('hidden');
+  window._viewJournal   = () => renderJournal();
+  window._closeJournal  = () => document.getElementById('journal-panel').classList.add('hidden');
 
-  window._buyTool    = buyTool;
-  window._unlockSkill = unlockSkill;
+  window._buyTool       = buyTool;
+  window._upgradeTool   = upgradeTool;
+  window._unlockSkill   = unlockSkill;
 
   window._resetGame = () => {
     if (!confirm('Réinitialiser la partie ? Toute la progression sera perdue.')) return;

@@ -740,6 +740,71 @@ body::after {
   opacity: 0.6;
 }
 
+/* ── TOOL HINTS IN MISSIONS ────────────────────────────── */
+.tool-active-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(0,255,65,0.2);
+  background: rgba(0,255,65,0.03);
+  margin-bottom: 14px;
+  font-size: 10px;
+}
+
+.tool-active-banner span {
+  color: var(--green-dim);
+}
+
+.tool-hint-banner {
+  padding: 7px 10px;
+  border: 1px solid rgba(0,255,65,0.25);
+  background: rgba(0,255,65,0.04);
+  font-size: 11px;
+  color: var(--green-dim);
+  margin-bottom: 12px;
+  animation: hint-appear 0.4s ease;
+}
+
+@keyframes hint-appear {
+  from { opacity: 0; border-color: var(--green); background: rgba(0,255,65,0.12); }
+  to   { opacity: 1; border-color: rgba(0,255,65,0.25); background: rgba(0,255,65,0.04); }
+}
+
+.hint-tag {
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  margin-left: 8px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.hint-tag.safe  { background: rgba(0,255,65,0.1);  color: var(--green);  border: 1px solid var(--green-dim); }
+.hint-tag.elim  { background: rgba(255,49,49,0.1); color: var(--red);    border: 1px solid var(--red); }
+.hint-tag.warn  { background: rgba(255,176,0,0.1); color: var(--amber);  border: 1px solid var(--amber); }
+
+/* Flag items neutralisés par Phishing Eye */
+.flag-item.hint-safe {
+  opacity: 0.45;
+  cursor: default;
+  border-color: rgba(0,255,65,0.1);
+}
+
+/* Lignes suspectes repérées par Burp */
+.code-row.burp-suspect {
+  background: rgba(255,176,0,0.05);
+  border-left: 2px solid var(--amber);
+  padding-left: 4px;
+}
+
+/* Options éliminées par John */
+.attack-item.hint-elim {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ── GLITCH & ANIMATIONS ───────────────────────────────── */
 @keyframes glitch {
   0%,90%,100% { text-shadow: 0 0 10px rgba(0,255,65,0.5); transform: none; }

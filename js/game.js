@@ -6,7 +6,8 @@ export const state = {
   xp: 0,
   credits: 100,
   rank: 0,
-  inventory: ['nmap'],
+  inventory: [],
+  toolLevels: {},
   skills: {},
   completedMissions: [],
   currentMission: null,
@@ -37,16 +38,15 @@ function _checkRankUp() {
   if (newRank > state.rank) {
     state.rank = newRank;
     const name = RANKS[newRank].name;
-    log(`[RANK UP] ★ Nouveau rang : ${name} !`, 'success', false);
+    log(`[RANK UP] ★ Nouveau rang : ${name} !`, 'success');
     state.credits += 200;
-    log(`[BONUS] +200 crédits pour votre promotion !`, 'success', false);
+    log(`[BONUS] +200 crédits pour votre promotion !`, 'success');
   }
 }
 
 // ── PERSISTENCE ───────────────────────────────────────────
 export function saveState() {
   localStorage.setItem('root-access-v1', JSON.stringify(state));
-  // Refresh UI on every save
   _refreshUI();
 }
 
@@ -55,7 +55,9 @@ function loadState() {
   if (!raw) return;
   try {
     const saved = JSON.parse(raw);
+    // Merge to preserve new keys added after first save
     Object.assign(state, saved);
+    if (!state.toolLevels) state.toolLevels = { nmap: 1 };
   } catch {
     localStorage.removeItem('root-access-v1');
   }
@@ -65,10 +67,9 @@ function loadState() {
 async function init() {
   loadState();
 
-  const { renderAll, renderMissionList } = await import('./ui.js');
+  const { renderAll } = await import('./ui.js');
   const { setupWindowHandlers } = await import('./missions.js');
 
-  // Wire global refresh so saveState can call UI
   window.__renderAll = renderAll;
 
   setupWindowHandlers();
