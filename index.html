@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Root Access — Hacker RPG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header id="header">
+    <pre id="avatar">
+ ╔══════╗
+ ║ >_   ║
+ ║ H4CK ║
+ ╚══════╝</pre>
+    <div id="player-info">
+      <div id="rank-display">Script Kiddie</div>
+      <div id="xp-bar-container">
+        <div id="xp-bar"><div id="xp-fill"></div></div>
+        <span id="xp-label">0 / 500 XP</span>
+      </div>
+    </div>
+    <div id="credits-display">₿ 100</div>
+    <button class="btn header-btn" id="btn-journal" onclick="window._viewJournal()">📚 Journal</button>
+    <button class="btn header-btn danger" id="btn-reset" onclick="window._resetGame()" title="Réinitialiser la partie">↺</button>
+  </header>
+
+  <main id="main-grid">
+
+    <aside id="terminal-panel">
+      <div id="terminal-header">
+        <span class="panel-label">// terminal.log</span>
+        <span id="terminal-status">●&nbsp;LIVE</span>
+      </div>
+      <div id="terminal-log"></div>
+    </aside>
+
+    <section id="mission-panel">
+      <div id="mission-content">
+        <div class="loading-screen">
+          <div class="loading-text glitch">Initialisation...</div>
+        </div>
+      </div>
+    </section>
+
+    <aside id="inventory-panel">
+      <div id="tools-inventory"></div>
+      <div id="skill-tree"></div>
+    </aside>
+
+  </main>
+
+  <footer id="footer">
+    <div id="action-buttons"></div>
+    <div id="mini-network"></div>
+    <div id="footer-status">
+      <span id="status-text">SYSTÈME ACTIF</span>
+    </div>
+  </footer>
+
+  <div id="tooltip-overlay" class="hidden"></div>
+  <div id="journal-panel" class="hidden"></div>
+
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>
