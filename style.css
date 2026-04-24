@@ -822,6 +822,40 @@ body::after {
 
 .fadein { animation: fadein 0.3s ease; }
 
+/* ── TYPE PROGRESS ─────────────────────────────────────── */
+.type-progress-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.type-progress-item {
+  border: 1px solid;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.type-progress-item .progress-bar {
+  height: 3px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+}
+
+.type-progress-item .progress-fill {
+  height: 100%;
+  border-radius: 0;
+  transition: width 0.5s ease;
+}
+
 /* No missions */
 .no-missions {
   text-align: center;

@@ -71,17 +71,17 @@ function renderFooter() {
   document.getElementById('action-buttons').innerHTML =
     `<button class="btn" onclick="window._backToList()">📋 Missions</button>`;
 
-  const done = state.completedMissions.length;
+  const done  = state.completedMissions.length;
+  const total = MISSIONS.length;
+  const pct   = Math.round((done / total) * 100);
+  const filled = Math.round((done / total) * 20);
+  const bar   = '█'.repeat(filled) + '░'.repeat(20 - filled);
+
   document.getElementById('mini-network').innerHTML = `
-    <span>NET:</span>
-    <div class="mn-node on" title="Vous"></div>
-    <div class="mn-edge"></div>
-    <div class="mn-node ${done > 0 ? 'hit' : ''}" title="Cible 1"></div>
-    <div class="mn-edge"></div>
-    <div class="mn-node ${done > 1 ? 'hit' : ''}" title="Cible 2"></div>
-    <div class="mn-edge"></div>
-    <div class="mn-node ${done > 2 ? 'hit' : ''}" title="Cible 3"></div>
-    <span style="margin-left:6px">${done} compromis</span>`;
+    <span style="color:var(--green-dim);letter-spacing:1px">MISSIONS</span>
+    <span style="color:var(--green);font-size:11px;letter-spacing:1px">${bar}</span>
+    <span style="color:var(--amber)">${done}/${total}</span>
+    <span style="color:#333">${pct}%</span>`;
 }
 
 // ── INVENTORY ─────────────────────────────────────────────
@@ -187,8 +187,26 @@ export function renderMissionList() {
 
   const typeColors = { phishing:'var(--blue)', hash:'var(--amber)', network:'var(--green)', ctf:'var(--red)' };
   const typeLabels = { phishing:'Phishing', hash:'Hash', network:'Réseau', ctf:'CTF' };
+  const types      = ['phishing', 'hash', 'network', 'ctf'];
 
-  let html = `<div class="panel-title fadein">Missions disponibles (${available.length})</div>`;
+  const typeStats = types.map(t => {
+    const total = MISSIONS.filter(m => m.type === t).length;
+    const done  = state.completedMissions.filter(id => MISSIONS.find(m => m.id === id)?.type === t).length;
+    return { t, done, total };
+  });
+
+  let html = `
+    <div class="type-progress-row fadein">
+      ${typeStats.map(({ t, done, total }) => `
+        <div class="type-progress-item" style="border-color:${typeColors[t]}">
+          <span style="color:${typeColors[t]}">${typeLabels[t]}</span>
+          <span style="color:var(--green)">${done}/${total}</span>
+          <div class="progress-bar" style="border-color:${typeColors[t]}20">
+            <div class="progress-fill" style="width:${Math.round(done/total*100)}%;background:${typeColors[t]}"></div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="panel-title fadein" style="margin-top:12px">Missions disponibles (${available.length})</div>`;
 
   for (const m of available) {
     const { finalXP, finalCredits, applied } = computeBonuses(m);
