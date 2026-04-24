@@ -805,6 +805,53 @@ body::after {
   pointer-events: none;
 }
 
+/* ── MOBILE SCREEN ─────────────────────────────────────── */
+#mobile-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9998;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.mobile-ascii {
+  color: var(--green);
+  text-shadow: 0 0 12px var(--green);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.mobile-title {
+  color: var(--green);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.mobile-msg {
+  color: var(--green-dim);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.mobile-sub {
+  color: #333;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 900px) {
+  #mobile-screen { display: flex; }
+  #header, #main-grid, #footer { display: none; }
+}
+
 /* ── GLITCH & ANIMATIONS ───────────────────────────────── */
 @keyframes glitch {
   0%,90%,100% { text-shadow: 0 0 10px rgba(0,255,65,0.5); transform: none; }
