@@ -269,6 +269,7 @@ function _phishingHTML(m) {
     <div class="email-wrap">
       <div class="email-header-block">
         <div class="email-field"><strong>De :</strong> <span>${m.email.from}</span></div>
+        ${m.email.replyTo ? `<div class="email-field"><strong>Reply-To :</strong> <span style="color:var(--amber)">${m.email.replyTo}</span></div>` : ''}
         <div class="email-field"><strong>À :</strong> <span>${m.email.to}</span></div>
         <div class="email-field"><strong>Objet :</strong> <span>${m.email.subject}</span></div>
         <div class="email-field"><strong>Date :</strong> <span>${m.email.date}</span></div>
